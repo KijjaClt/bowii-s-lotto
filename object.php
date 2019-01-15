@@ -16,6 +16,26 @@ class Lotto
     }
 }
 
+class LottoDetail
+{
+    var $id;
+    var $customer;
+    var $total = 0;
+    var $top;
+    var $bottom;
+    var $create_at;
+
+    function __construct($id, $customer, $top, $bottom, $create_at)
+    {
+        $this->id = $id;
+        $this->customer = $customer;
+        $this->total = $top + $bottom;
+        $this->top = intval($top);
+        $this->bottom = intval($bottom);
+        $this->create_at = $create_at;
+    }
+}
+
 class User
 {
     var $id;

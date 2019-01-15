@@ -103,12 +103,12 @@ $app->get('/number', function ($request, $response, $args) {
         $arrNumber2 = array();
         $arrNumber3 = array();
 
-        $sqlBase = "SELECT n.id as id, n.number as `number`, t.top as `top`, t.bottom as bottom
+        $sqlBase = "SELECT n.id as id, n.number as `number`, SUM(t.top) as `top`, SUM(t.bottom) as bottom
                 FROM `number` as n 
                 LEFT JOIN `transaction` as t 
                 ON n.id = t.number_id";
 
-        $additionalQuery2 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '2' ORDER by n.number ASC";
+        $additionalQuery2 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '2' GROUP BY n.number ORDER by n.number ASC";
 
         $result = $db->query($additionalQuery2);
         while ($row = mysqli_fetch_assoc($result)) {
@@ -116,7 +116,7 @@ $app->get('/number', function ($request, $response, $args) {
             array_push($arrNumber2, $lotto);
         }
 
-        $additionalQuery3 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '3' ORDER by n.number ASC";
+        $additionalQuery3 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '3' GROUP BY n.number ORDER by n.number ASC";
 
         $result = $db->query($additionalQuery3);
         while ($row = mysqli_fetch_assoc($result)) {
@@ -133,7 +133,7 @@ $app->get('/number', function ($request, $response, $args) {
 });
 
 $app->get('/customer', function ($request, $response, $args) {
-    // return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function($request, $response) {
         $db = new DB();
         $db->connect();
 
@@ -153,7 +153,42 @@ $app->get('/customer', function ($request, $response, $args) {
         $db->close();
         
         return $response->withJson($data);
-    // });
+    });
+});
+
+$app->get('/lotto/{numberID}', function ($request, $response, $args) {
+    return checkAuth($request, $response, function($request, $response) {
+        $route = $request->getAttribute('route');
+        $numberID = $route->getArgument('numberID');
+
+        $db = new DB();
+        $db->connect();
+
+        $data = array();
+        $lottoList = array();
+
+        $sql = "SELECT t.id as id, n.number as `number`, c.name as customer, `top`, `bottom`, create_at
+                FROM `transaction` as t
+                LEFT JOIN `number` as n 
+                ON t.number_id = n.id
+                LEFT JOIN `customer` as c
+                ON t.customer_id = c.id
+                WHERE t.number_id = '". $numberID ."'
+                ORDER by `create_at` ASC";
+
+        $result = $db->query($sql);
+        while ($row = mysqli_fetch_assoc($result)) {
+            $data['number'] = $row['number'];
+            $lottoDetailObj = new LottoDetail($row['id'], $row['customer'], $row['top'], $row['bottom'], $row['create_at']);
+            array_push($lottoList, $lottoDetailObj);
+        }
+
+        $data['lotteries'] = $lottoList;
+
+        $db->close();
+        
+        return $response->withJson($data);
+    });
 });
 
 $app->post('/lotto', function ($request, $response, $args) {
@@ -161,16 +196,78 @@ $app->post('/lotto', function ($request, $response, $args) {
         $body = $request->getParsedBody();
 
         $customerID = filter_var($body["customer_id"]);
-        $numbers = json_decode($body["numbers"]);
+        $lotteries = json_decode($body["lotteries"]);
 
         $db = new DB();
         $db->connect();
 
-        var_dump($numbers); die;
+        foreach ($lotteries as $lotto) {
+            $sql = "SELECT *
+                    FROM `number`
+                    WHERE `number` = '".$lotto->number."'";
+
+            $result = $db->query($sql);
+            $row = mysqli_fetch_assoc($result);
+            
+            $numberID = $row["id"];
+            $top = $lotto->top;
+            $bottom = $lotto->bottom;
+
+            $insertSQL = "INSERT INTO `transaction` (`id`, `customer_id`, `number_id`, `top`, `bottom`) 
+                        VALUES ('".sha1(getSecertKey().date("Y-m-d H:i:s").$customerID.$numberID)."', '". $customerID ."', '". $numberID ."', '". $top ."', '". $bottom ."');";
+            
+            $result = $db->query($insertSQL);
+        }
 
         $db->close();
         
-        return $response->withJson($data);
+        return $response->withJson(array('status' => true));
+    });
+});
+
+$app->post('/editlotto', function ($request, $response, $args) {
+    return checkAuth($request, $response, function($request, $response) {
+        $body = $request->getParsedBody();
+
+        $lotteries = json_decode($body["lotteries"]);
+
+        $db = new DB();
+        $db->connect();
+
+        foreach ($lotteries as $lotto) {
+            $transactionID = $lotto->transactionID;
+            $top = $lotto->top;
+            $bottom = $lotto->bottom;
+
+            $sql = "UPDATE `transaction` 
+                    SET `top` = ". $top .", `bottom` = ". $bottom ."
+                    WHERE `id` = '". $transactionID ."' ;";
+            
+            $result = $db->query($sql);
+        }
+
+        $db->close();
+        
+        return $response->withJson(array('status' => true));
+    });
+});
+
+$app->delete('/lotto/{transactionID}', function ($request, $response) {
+    return checkAuth($request, $response, function($request, $response) {
+        $route = $request->getAttribute('route');
+        $transactionID = $route->getArgument('transactionID');
+
+        $db = new DB();
+        $db->connect();
+
+        $sql = "DELETE FROM `transaction` 
+                WHERE `id` = '". $transactionID ."'";
+
+        $result = $db->query($sql);
+
+        $db->close();
+
+        return $response->withJson(array('status' => true));
     });
 });
 
