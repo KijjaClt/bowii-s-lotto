@@ -3,8 +3,8 @@
 class DB
 {
     private $servername = "localhost";
-    private $username = "root";
-    private $password = "";
+    private $username = "lotto";
+    private $password = "lotto@2019";
     private $dbname = "lotto";
 
     private $conn;
