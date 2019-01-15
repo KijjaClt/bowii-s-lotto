@@ -133,7 +133,7 @@ $app->get('/number', function ($request, $response, $args) {
 });
 
 $app->get('/customer', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    // return checkAuth($request, $response, function($request, $response) {
         $db = new DB();
         $db->connect();
 
@@ -153,7 +153,7 @@ $app->get('/customer', function ($request, $response, $args) {
         $db->close();
         
         return $response->withJson($data);
-    });
+    // });
 });
 
 $app->post('/lotto', function ($request, $response, $args) {
