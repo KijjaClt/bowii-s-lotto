@@ -184,23 +184,22 @@ $app->post('/lotto', function ($request, $response, $args) {
         $body = $request->getParsedBody();
 
         $customerID = filter_var($body["customer_id"]);
-        $lotteries = $body["lotteries"];
+        $lotteries = json_decode($body["lotteries"]);
 
         $db = new DB();
         $db->connect();
 
         foreach ($lotteries as $lotto) {
-
             $sql = "SELECT *
                     FROM `number`
-                    WHERE `number` = '".$lotto["number"]."'";
+                    WHERE `number` = '".$lotto->number."'";
 
             $result = $db->query($sql);
             $row = mysqli_fetch_assoc($result);
             
             $numberID = $row["id"];
-            $top = $lotto["top"];
-            $bottom = $lotto["bottom"];
+            $top = $lotto->top;
+            $bottom = $lotto->bottom;
 
             $insertSQL = "INSERT INTO `transaction` (`id`, `customer_id`, `number_id`, `top`, `bottom`) 
                         VALUES ('".sha1(getSecertKey().date("Y-m-d H:i:s").$customerID.$numberID)."', '". $customerID ."', '". $numberID ."', '". $top ."', '". $bottom ."');";
@@ -218,15 +217,15 @@ $app->post('/editlotto', function ($request, $response, $args) {
     return checkAuth($request, $response, function($request, $response) {
         $body = $request->getParsedBody();
 
-        $lotteries = $body["lotteries"];
+        $lotteries = json_decode($body["lotteries"]);
 
         $db = new DB();
         $db->connect();
 
         foreach ($lotteries as $lotto) {
-            $transactionID = $lotto["transactionID"];
-            $top = $lotto["top"];
-            $bottom = $lotto["bottom"];
+            $transactionID = $lotto->transactionID;
+            $top = $lotto->top;
+            $bottom = $lotto->bottom;
 
             $sql = "UPDATE `transaction` 
                     SET `top` = ". $top .", `bottom` = ". $bottom ."
