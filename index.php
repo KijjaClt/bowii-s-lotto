@@ -271,6 +271,14 @@ $app->delete('/cleardata', function ($request, $response, $args) {
     });
 });
 
+$app->add(function ($req, $res, $next) {
+    $response = $next($req, $res);
+    return $response
+            ->withHeader('Access-Control-Allow-Origin', '*')
+            ->withHeader('Access-Control-Allow-Headers', '*')
+            ->withHeader('Access-Control-Allow-Methods', '*');
+});
+
 function truncateTransaction()
 {
     $db = new DB();
