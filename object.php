@@ -5,9 +5,9 @@ class Lotto
     var $id;
     var $number;
     var $bought = false;
-    var $total = 0;
     var $top;
     var $bottom;
+    var $total = 0;
 
     function __construct($id, $number, $top, $bottom)
     {
