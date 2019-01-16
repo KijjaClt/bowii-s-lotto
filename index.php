@@ -184,9 +184,7 @@ $app->post('/lotto', function ($request, $response, $args) {
         $body = $request->getParsedBody();
 
         $customerID = filter_var($body["customer_id"]);
-        $lotteries = json_decode($body["lotteries"], true);
-
-        
+        $lotteries = $body["lotteries"];
 
         $db = new DB();
         $db->connect();
@@ -219,7 +217,7 @@ $app->post('/editlotto', function ($request, $response, $args) {
     return checkAuth($request, $response, function($request, $response) {
         $body = $request->getParsedBody();
 
-        $lotteries = json_decode($body["lotteries"], true);
+        $lotteries = $body["lotteries"];
 
         $db = new DB();
         $db->connect();
