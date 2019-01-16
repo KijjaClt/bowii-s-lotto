@@ -6,6 +6,8 @@ class Lotto
     var $number;
     var $bought = false;
     var $total = 0;
+    var $top;
+    var $bottom;
 
     function __construct($id, $number, $top, $bottom)
     {
@@ -13,6 +15,8 @@ class Lotto
         $this->number = $number;
         $this->total = $top + $bottom;
         $this->bought = ($this->total > 0);
+        $this->top = intval($top);
+        $this->bottom = intval($bottom);
     }
 }
 
