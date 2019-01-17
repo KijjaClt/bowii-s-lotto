@@ -109,6 +109,8 @@ $app->get('/number', function ($request, $response, $args) {
 
         $additionalQuery2 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '2' GROUP BY n.number ORDER by n.number ASC";
 
+        echo $additionalQuery2;
+
         $result = $db->query($additionalQuery2);
         while ($row = mysqli_fetch_assoc($result)) {
             $lotto = new Lotto($row['id'], $row['number'], $row['top'], $row['bottom']);
@@ -117,6 +119,8 @@ $app->get('/number', function ($request, $response, $args) {
 
         $additionalQuery3 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '3' GROUP BY n.number ORDER by n.number ASC";
 
+        echo $additionalQuery3;
+
         $result = $db->query($additionalQuery3);
         while ($row = mysqli_fetch_assoc($result)) {
             $lottoObj = new Lotto($row['id'], $row['number'], $row['top'], $row['bottom']);
@@ -124,6 +128,8 @@ $app->get('/number', function ($request, $response, $args) {
         }
 
         $data = array_merge($arrNumber2,$arrNumber3);
+
+        print_r($data); die;
 
         $db->close();
         
