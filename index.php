@@ -131,7 +131,7 @@ $app->get('/number', function ($request, $response, $args) {
                 FROM `number` as n 
                 LEFT JOIN `transaction` as t 
                 ON n.id = t.number_id
-                GROUP BY n.number ORDER by t.total DESC";
+                GROUP BY n.number ORDER by (SUM(t.top)+SUM(t.bottom)) DESC";
 
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
