@@ -240,18 +240,23 @@ $app->post('/editlotto', function ($request, $response, $args) {
     });
 });
 
-$app->delete('/lotto/{transactionID}', function ($request, $response) {
+$app->post('/deletelotto', function ($request, $response) {
     return checkAuth($request, $response, function($request, $response) {
-        $route = $request->getAttribute('route');
-        $transactionID = $route->getArgument('transactionID');
+        $body = $request->getParsedBody();
+
+        $lotteries = $body["lotteries"];
 
         $db = new DB();
         $db->connect();
 
-        $sql = "DELETE FROM `transaction` 
-                WHERE `id` = '". $transactionID ."'";
+        foreach ($lotteries as $lotto) {
+            $transactionID = $lotto["transactionID"];
 
-        $result = $db->query($sql);
+            $sql = "DELETE FROM `transaction` 
+                    WHERE `id` = '". $transactionID ."'";
+
+            $result = $db->query($sql);
+        }
 
         $db->close();
 
