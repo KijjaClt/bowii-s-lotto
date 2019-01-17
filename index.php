@@ -8,6 +8,17 @@ require __DIR__ . '/object.php';
 
 $app = new \Slim\App;
 
+$app = new \Slim\App([
+    'settings' => [
+        'displayErrorDetails' => true
+    ]
+]);
+$app->get('/', function ($request, $response, $args) {
+    return checkAuth($request, $response, function($request, $response) {
+        return $response->withStatus(200)->write('Hello World!');
+    });
+});
+
 $app->post('/login', function ($request, $response, $args) {
     return checkAuth($request, $response, function($request, $response) {
         $body = $request->getParsedBody();
