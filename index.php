@@ -59,8 +59,8 @@ $app->post('/changepwd', function ($request, $response, $args) {
     return checkAuth($request, $response, function($request, $response) {
         $body = $request->getParsedBody();
 
-        $oldPassword = filter_var($body["oldpwd"]);
-        $newPassword = filter_var($body["newpwd"]);
+        $oldPassword = trim(filter_var($body["oldpwd"]));
+        $newPassword = trim(filter_var($body["newpwd"]));
 
         $data = array('status' => false);
 
@@ -146,7 +146,7 @@ $app->get('/customer', function ($request, $response, $args) {
 $app->get('/lotto/{numberID}', function ($request, $response, $args) {
     return checkAuth($request, $response, function($request, $response) {
         $route = $request->getAttribute('route');
-        $numberID = $route->getArgument('numberID');
+        $numberID = trim($route->getArgument('numberID'));
 
         $db = new DB();
         $db->connect();
@@ -188,27 +188,30 @@ $app->post('/lotto', function ($request, $response, $args) {
         $db = new DB();
         $db->connect();
 
+        $data = array('status' => false);
+
         foreach ($lotteries as $lotto) {
             $sql = "SELECT *
                     FROM `number`
-                    WHERE `number` = '".$lotto["number"]."'";
+                    WHERE `number` = '".trim($lotto["number"])."'";
 
             $result = $db->query($sql);
             $row = mysqli_fetch_assoc($result);
             
             $numberID = $row["id"];
-            $top = $lotto["top"];
-            $bottom = $lotto["bottom"];
+            $top = trim($lotto["top"]);
+            $bottom = trim($lotto["bottom"]);
 
             $insertSQL = "INSERT INTO `transaction` (`id`, `customer_id`, `number_id`, `top`, `bottom`) 
                         VALUES ('".sha1(getSecertKey().date("Y-m-d H:i:s").$customerID.$numberID)."', '". $customerID ."', '". $numberID ."', '". $top ."', '". $bottom ."');";
             
             $result = $db->query($insertSQL);
+            $data['status'] = true;
         }
 
         $db->close();
         
-        return $response->withJson(array('status' => true));
+        return $response->withJson($data);
     });
 });
 
@@ -221,21 +224,24 @@ $app->post('/editlotto', function ($request, $response, $args) {
         $db = new DB();
         $db->connect();
 
+        $data = array('status' => false);
+
         foreach ($lotteries as $lotto) {
-            $transactionID = $lotto["transactionID"];
-            $top = $lotto["top"];
-            $bottom = $lotto["bottom"];
+            $transactionID = trim($lotto["transactionID"]);
+            $top = trim($lotto["top"]);
+            $bottom = trim($lotto["bottom"]);
 
             $sql = "UPDATE `transaction` 
                     SET `top` = ". $top .", `bottom` = ". $bottom ."
                     WHERE `id` = '". $transactionID ."' ;";
             
             $result = $db->query($sql);
+            $data['status'] = true;
         }
 
         $db->close();
         
-        return $response->withJson(array('status' => true));
+        return $response->withJson($data);
     });
 });
 
@@ -248,18 +254,21 @@ $app->post('/deletelotto', function ($request, $response) {
         $db = new DB();
         $db->connect();
 
+        $data = array('status' => false);
+
         foreach ($lotteries as $lotto) {
-            $transactionID = $lotto["transactionID"];
+            $transactionID = trim($lotto["transactionID"]);
 
             $sql = "DELETE FROM `transaction` 
                     WHERE `id` = '". $transactionID ."'";
 
             $result = $db->query($sql);
+            $data['status'] = true;
         }
 
         $db->close();
 
-        return $response->withJson(array('status' => true));
+        return $response->withJson($data);
     });
 });
 
