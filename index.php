@@ -99,39 +99,13 @@ $app->get('/number', function ($request, $response, $args) {
         $db = new DB();
         $db->connect();
 
-        // $arrNumber2 = array();
-        // $arrNumber3 = array();
-
-        // $sqlBase = "SELECT n.id as id, n.number as `number`, SUM(t.top) as `top`, SUM(t.bottom) as bottom
-        //         FROM `number` as n 
-        //         LEFT JOIN `transaction` as t 
-        //         ON n.id = t.number_id";
-
-        // $additionalQuery2 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '2' GROUP BY n.number ORDER by n.number ASC";
-
-        // $result = $db->query($additionalQuery2);
-        // while ($row = mysqli_fetch_assoc($result)) {
-        //     $lotto = new Lotto($row['id'], $row['number'], $row['top'], $row['bottom']);
-        //     array_push($arrNumber2, $lotto);
-        // }
-
-        // $additionalQuery3 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '3' GROUP BY n.number ORDER by n.number ASC";
-
-        // $result = $db->query($additionalQuery3);
-        // while ($row = mysqli_fetch_assoc($result)) {
-        //     $lottoObj = new Lotto($row['id'], $row['number'], $row['top'], $row['bottom']);
-        //     array_push($arrNumber3, $lottoObj);
-        // }
-
-        // $data = array_merge($arrNumber2,$arrNumber3);
-
         $data = array();
 
         $sql = "SELECT n.id as id, n.number as `number`, SUM(t.top) as `top`, SUM(t.bottom) as bottom
                 FROM `number` as n 
                 LEFT JOIN `transaction` as t 
                 ON n.id = t.number_id
-                GROUP BY n.number ORDER by (SUM(t.top)+SUM(t.bottom)) DESC";
+                GROUP BY n.id, n.number ORDER by (SUM(t.top)+SUM(t.bottom)) DESC";
 
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
