@@ -105,7 +105,8 @@ $app->get('/number', function ($request, $response, $args) {
                 FROM `number` as n 
                 LEFT JOIN `transaction` as t 
                 ON n.id = t.number_id
-                GROUP BY n.id, n.number ORDER by (SUM(t.top)+SUM(t.bottom)) DESC";
+                GROUP BY n.id, n.number 
+                ORDER by n.number ASC";
 
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
@@ -154,6 +155,15 @@ $app->get('/lotto/{numberID}', function ($request, $response, $args) {
         $data = array();
         $lottoList = array();
 
+        $sql = "SELECT *
+                FROM `number`
+                WHERE id = '$numberID'";
+
+        $result = $db->query($sql);
+        while ($row = mysqli_fetch_assoc($result)) {
+            $data['number'] = $row['number'];
+        }
+
         $sql = "SELECT t.id as id, n.number as `number`, c.name as customer, `top`, `bottom`, create_at
                 FROM `transaction` as t
                 LEFT JOIN `number` as n 
@@ -165,7 +175,6 @@ $app->get('/lotto/{numberID}', function ($request, $response, $args) {
 
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
-            $data['number'] = $row['number'];
             $lottoDetailObj = new LottoDetail($row['id'], $row['customer'], $row['top'], $row['bottom'], $row['create_at']);
             array_push($lottoList, $lottoDetailObj);
         }
@@ -189,6 +198,15 @@ $app->get('/customer/{customerID}', function ($request, $response, $args) {
         $data = array();
         $lottoList = array();
 
+        $sql = "SELECT *
+                FROM `customer`
+                WHERE id = '$customerID'";
+
+        $result = $db->query($sql);
+        while ($row = mysqli_fetch_assoc($result)) {
+            $data['customer'] = $row['name'];
+        }
+
         $sql = "SELECT t.id as id, n.number as `number`, c.name as customer, SUM(t.top) as `top`, SUM(t.bottom) as bottom, create_at
                 FROM `transaction` as t
                 LEFT JOIN `number` as n 
@@ -196,11 +214,11 @@ $app->get('/customer/{customerID}', function ($request, $response, $args) {
                 LEFT JOIN `customer` as c
                 ON t.customer_id = c.id
                 WHERE t.customer_id = '". $customerID ."'
-                GROUP BY n.id, n.number ORDER by (SUM(t.top)+SUM(t.bottom)) DESC";
+                GROUP BY n.id, n.number
+                ORDER BY n.number ASC";
 
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
-            $data['customer'] = $row['customer'];
             $customerDetailObj = new CustomerDetail($row['id'], $row['number'], $row['top'], $row['bottom'], $row['create_at']);
             array_push($lottoList, $customerDetailObj);
         }
