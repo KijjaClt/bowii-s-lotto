@@ -178,6 +178,41 @@ $app->get('/lotto/{numberID}', function ($request, $response, $args) {
     });
 });
 
+$app->get('/customer/{customerID}', function ($request, $response, $args) {
+    return checkAuth($request, $response, function($request, $response) {
+        $route = $request->getAttribute('route');
+        $customerID = trim($route->getArgument('customerID'));
+
+        $db = new DB();
+        $db->connect();
+
+        $data = array();
+        $lottoList = array();
+
+        $sql = "SELECT t.id as id, n.number as `number`, c.name as customer, SUM(t.top) as `top`, SUM(t.bottom) as bottom, create_at
+                FROM `transaction` as t
+                LEFT JOIN `number` as n 
+                ON t.number_id = n.id
+                LEFT JOIN `customer` as c
+                ON t.customer_id = c.id
+                WHERE t.customer_id = '". $customerID ."'
+                GROUP BY n.id, n.number ORDER by (SUM(t.top)+SUM(t.bottom)) DESC";
+
+        $result = $db->query($sql);
+        while ($row = mysqli_fetch_assoc($result)) {
+            $data['customer'] = $row['customer'];
+            $customerDetailObj = new CustomerDetail($row['id'], $row['number'], $row['top'], $row['bottom'], $row['create_at']);
+            array_push($lottoList, $customerDetailObj);
+        }
+
+        $data['lotteries'] = $lottoList;
+
+        $db->close();
+        
+        return $response->withJson($data);
+    });
+});
+
 $app->post('/lotto', function ($request, $response, $args) {
     return checkAuth($request, $response, function($request, $response) {
         $body = $request->getParsedBody();
