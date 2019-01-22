@@ -225,8 +225,10 @@ $app->get('/customer/{customerID}', function ($request, $response, $args) {
                 LEFT JOIN `customer` as c
                 ON t.customer_id = c.id
                 WHERE t.customer_id = '". $customerID ."'
-                GROUP BY n.id, n.number
+                GROUP BY t.id, n.id, n.number
                 ORDER BY n.number ASC";
+
+                echo $sql; die;
 
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
