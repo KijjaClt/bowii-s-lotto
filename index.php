@@ -223,8 +223,6 @@ $app->get('/customer/{customerID}', function ($request, $response, $args) {
                 GROUP BY t.id, n.id, n.number
                 ORDER BY n.number ASC";
 
-                echo $sql; die;
-
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
             $customerDetailObj = new CustomerDetail($row['id'], $row['number'], $row['top'], $row['bottom'], $row['create_at']);
