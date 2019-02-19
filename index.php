@@ -1,6 +1,5 @@
 <?php
 use \Psr\Http\Message\ServerRequestInterface as Request;
-use \Psr\Http\Message\ResponseInterface as Response;
 
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/db.php';
@@ -9,13 +8,13 @@ require __DIR__ . '/object.php';
 $app = new \Slim\App;
 
 $app->get('/', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         return $response->withStatus(200)->write('Hello World!');
     });
 });
 
 $app->post('/login', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $body = $request->getParsedBody();
 
         $username = filter_var($body["username"]);
@@ -29,8 +28,8 @@ $app->post('/login', function ($request, $response, $args) {
         $authUsername = false;
         $authPassword = false;
 
-        $sql = "SELECT * 
-                FROM `setting` 
+        $sql = "SELECT *
+                FROM `setting`
                 WHERE 1";
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
@@ -45,13 +44,13 @@ $app->post('/login', function ($request, $response, $args) {
         $data['status'] = $authUsername && $authPassword;
 
         $db->close();
-        
+
         return $response->withJson($data);
     });
 });
 
 $app->post('/changepwd', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $body = $request->getParsedBody();
 
         $oldPassword = trim(filter_var($body["oldpwd"]));
@@ -64,8 +63,8 @@ $app->post('/changepwd', function ($request, $response, $args) {
 
         $authPassword = false;
 
-        $sql = "SELECT * 
-                FROM `setting` 
+        $sql = "SELECT *
+                FROM `setting`
                 WHERE 1";
         $result = $db->query($sql);
         while ($row = mysqli_fetch_assoc($result)) {
@@ -73,10 +72,10 @@ $app->post('/changepwd', function ($request, $response, $args) {
                 $authPassword = true;
             }
         }
-        
+
         if ($authPassword) {
-            $sql = "UPDATE `setting` 
-                    SET `value` = '". $newPassword ."' 
+            $sql = "UPDATE `setting`
+                    SET `value` = '" . $newPassword . "'
                     WHERE `id` = 2;";
             $result = $db->query($sql);
 
@@ -84,13 +83,13 @@ $app->post('/changepwd', function ($request, $response, $args) {
         }
 
         $db->close();
-        
+
         return $response->withJson($data);
     });
 });
 
 $app->get('/number', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $db = new DB();
         $db->connect();
 
@@ -100,34 +99,34 @@ $app->get('/number', function ($request, $response, $args) {
         $arrNumber3 = array();
 
         $sqlBase = "SELECT n.id as id, n.number as `number`, SUM(t.top) as `top`, SUM(t.bottom) as bottom
-                FROM `number` as n 
-                LEFT JOIN `transaction` as t 
+                FROM `number` as n
+                LEFT JOIN `transaction` as t
                 ON n.id = t.number_id";
 
-        $additionalQuery2 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '2' GROUP BY n.id, n.number ORDER by n.number ASC";
+        $additionalQuery2 = $sqlBase . " WHERE CHAR_LENGTH(n.number) = '2' GROUP BY n.id, n.number ORDER by n.number ASC";
         $result = $db->query($additionalQuery2);
         while ($row = mysqli_fetch_assoc($result)) {
             $lotto = new Lotto($row['id'], $row['number'], $row['top'], $row['bottom']);
             array_push($arrNumber2, $lotto);
         }
 
-        $additionalQuery3 = $sqlBase." WHERE CHAR_LENGTH(n.number) = '3' GROUP BY n.id, n.number ORDER by n.number ASC";
+        $additionalQuery3 = $sqlBase . " WHERE CHAR_LENGTH(n.number) = '3' GROUP BY n.id, n.number ORDER by n.number ASC";
         $result = $db->query($additionalQuery3);
         while ($row = mysqli_fetch_assoc($result)) {
             $lottoObj = new Lotto($row['id'], $row['number'], $row['top'], $row['bottom']);
             array_push($arrNumber3, $lottoObj);
         }
-        
-        $data = array_merge($arrNumber2,$arrNumber3);
+
+        $data = array_merge($arrNumber2, $arrNumber3);
 
         $db->close();
-        
+
         return $response->withJson($data);
     });
 });
 
 $app->get('/customer', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $db = new DB();
         $db->connect();
 
@@ -145,13 +144,13 @@ $app->get('/customer', function ($request, $response, $args) {
         }
 
         $db->close();
-        
+
         return $response->withJson($data);
     });
 });
 
 $app->get('/lotto/{numberID}', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $route = $request->getAttribute('route');
         $numberID = trim($route->getArgument('numberID'));
 
@@ -172,11 +171,11 @@ $app->get('/lotto/{numberID}', function ($request, $response, $args) {
 
         $sql = "SELECT t.id as id, n.number as `number`, c.name as customer, `top`, `bottom`, create_at
                 FROM `transaction` as t
-                LEFT JOIN `number` as n 
+                LEFT JOIN `number` as n
                 ON t.number_id = n.id
                 LEFT JOIN `customer` as c
                 ON t.customer_id = c.id
-                WHERE t.number_id = '". $numberID ."'
+                WHERE t.number_id = '" . $numberID . "'
                 ORDER by `create_at` ASC";
 
         $result = $db->query($sql);
@@ -188,13 +187,13 @@ $app->get('/lotto/{numberID}', function ($request, $response, $args) {
         $data['lotteries'] = $lottoList;
 
         $db->close();
-        
+
         return $response->withJson($data);
     });
 });
 
 $app->get('/customer/{customerID}', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $route = $request->getAttribute('route');
         $customerID = trim($route->getArgument('customerID'));
 
@@ -215,11 +214,11 @@ $app->get('/customer/{customerID}', function ($request, $response, $args) {
 
         $sql = "SELECT t.id as id, n.number as `number`, c.name as customer, SUM(t.top) as `top`, SUM(t.bottom) as bottom, create_at
                 FROM `transaction` as t
-                LEFT JOIN `number` as n 
+                LEFT JOIN `number` as n
                 ON t.number_id = n.id
                 LEFT JOIN `customer` as c
                 ON t.customer_id = c.id
-                WHERE t.customer_id = '". $customerID ."'
+                WHERE t.customer_id = '" . $customerID . "'
                 GROUP BY t.id, n.id, n.number
                 ORDER BY n.number ASC";
 
@@ -232,13 +231,13 @@ $app->get('/customer/{customerID}', function ($request, $response, $args) {
         $data['lotteries'] = $lottoList;
 
         $db->close();
-        
+
         return $response->withJson($data);
     });
 });
 
 $app->post('/lotto', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $body = $request->getParsedBody();
 
         $customerID = filter_var($body["customer_id"]);
@@ -252,30 +251,30 @@ $app->post('/lotto', function ($request, $response, $args) {
         foreach ($lotteries as $lotto) {
             $sql = "SELECT *
                     FROM `number`
-                    WHERE `number` = '".trim($lotto["number"])."'";
+                    WHERE `number` = '" . trim($lotto["number"]) . "'";
 
             $result = $db->query($sql);
             $row = mysqli_fetch_assoc($result);
-            
+
             $numberID = $row["id"];
             $top = trim($lotto["top"]);
             $bottom = trim($lotto["bottom"]);
 
-            $insertSQL = "INSERT INTO `transaction` (`id`, `customer_id`, `number_id`, `top`, `bottom`) 
-                        VALUES ('".sha1(getSecertKey().date("Y-m-d H:i:s").$customerID.$numberID)."', '". $customerID ."', '". $numberID ."', '". $top ."', '". $bottom ."');";
-            
+            $insertSQL = "INSERT INTO `transaction` (`id`, `customer_id`, `number_id`, `top`, `bottom`)
+                        VALUES ('" . sha1(getSecertKey() . date("Y-m-d H:i:s") . $customerID . $numberID) . "', '" . $customerID . "', '" . $numberID . "', '" . $top . "', '" . $bottom . "');";
+
             $result = $db->query($insertSQL);
             $data['status'] = true;
         }
 
         $db->close();
-        
+
         return $response->withJson($data);
     });
 });
 
 $app->post('/editlotto', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $body = $request->getParsedBody();
 
         $lotteries = $body["lotteries"];
@@ -290,22 +289,22 @@ $app->post('/editlotto', function ($request, $response, $args) {
             $top = trim($lotto["top"]);
             $bottom = trim($lotto["bottom"]);
 
-            $sql = "UPDATE `transaction` 
-                    SET `top` = ". $top .", `bottom` = ". $bottom ."
-                    WHERE `id` = '". $transactionID ."' ;";
-            
+            $sql = "UPDATE `transaction`
+                    SET `top` = " . $top . ", `bottom` = " . $bottom . "
+                    WHERE `id` = '" . $transactionID . "' ;";
+
             $result = $db->query($sql);
             $data['status'] = true;
         }
 
         $db->close();
-        
+
         return $response->withJson($data);
     });
 });
 
 $app->post('/deletelotto', function ($request, $response) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         $body = $request->getParsedBody();
 
         $lotteries = $body["lotteries"];
@@ -318,8 +317,8 @@ $app->post('/deletelotto', function ($request, $response) {
         foreach ($lotteries as $lotto) {
             $transactionID = trim($lotto["transactionID"]);
 
-            $sql = "DELETE FROM `transaction` 
-                    WHERE `id` = '". $transactionID ."'";
+            $sql = "DELETE FROM `transaction`
+                    WHERE `id` = '" . $transactionID . "'";
 
             $result = $db->query($sql);
             $data['status'] = true;
@@ -332,28 +331,114 @@ $app->post('/deletelotto', function ($request, $response) {
 });
 
 $app->delete('/cleardata', function ($request, $response, $args) {
-    return checkAuth($request, $response, function($request, $response) {
+    return checkAuth($request, $response, function ($request, $response) {
         truncateTransaction();
         return $response->withJson(array('status' => true));
     });
 });
 
+$app->post('/{order}/{lock}', function ($request, $response, $args) {
+    $route = $request->getAttribute('route');
+    $order = trim($route->getArgument('order'));
+    $lock = trim($route->getArgument('lock'));
+
+    $body = $request->getParsedBody();
+
+    $data = array();
+
+    $allPostPutVars = $request->getParsedBody();
+    foreach ($allPostPutVars as $key => $param) {
+        $data[$key] = $param;
+    }
+
+    $res = array();
+    $saved = array();
+    $html = '<div style="border: 1px solid #ccc; height:400px;margin: 0 auto;overflow-y:scroll;"><table style="background-color: #ffffff; width:100%; ">';
+    $result = $data["result"];
+    $result = str_replace("[", "", $result);
+    $result = str_replace("]", "", $result);
+
+    $nums = explode(",", $result);
+    $arraySize = sizeof($nums);
+
+    if ($arraySize + 1 != $order) {
+        if (isset($data['unique'])) {
+            do {
+                $no = rand($data["min"], $data["max"]);
+            } while (in_array($no, $nums));
+        } else {
+            $no = rand($data["min"], $data["max"]);
+        }
+    } else {
+        $no = intval($lock);
+    }
+
+    if (isset($data['unique'])) {
+        if (strlen($result) > 0) {
+            $i = 0;
+
+            while ($i < $arraySize) {
+                if ($i == 0 && $arraySize < $data["max"]) {
+                    array_push($saved, $no);
+                    $html = $html . '<tr style="background-color:#eee;"><td style="font-size:1.0em;width:100px;text-align:right;">' . ($arraySize + 1) . '.</td><td style="font-size:1.6em; color: #FF0000;"><strong>' . $no . '</strong></td></tr>';
+                }
+
+                array_push($saved, intval($nums[$i]));
+
+                if ($i % 2 == 0) {
+                    $html = $html . '<tr style="background-color:#fff;"><td style="width:100px;text-align:right;">' . ($arraySize - $i) . '.</td><td>' . $nums[$i] . '</td></tr>';
+                } else {
+                    $html = $html . '<tr style="background-color:#eee;"><td style="width:100px;text-align:right;">' . ($arraySize - $i) . '.</td><td>' . $nums[$i] . '</td></tr>';
+                }
+                $i++;
+            }
+        } else {
+            array_push($saved, $no);
+            $html = $html . '<tr style="background-color:#eee;"><td style="font-size:1.0em;width:100px;text-align:right;">1.</td><td style="font-size:1.6em; color: #FF0000;"><strong>' . $no . '</strong></td></tr>';
+        }
+
+        $res["html"] = $html . '</table></div>';
+
+    } else {
+        array_push($saved, $no);
+
+        $i = 0;
+        while ($i < $arraySize) {
+            array_push($saved, intval($nums[$i]));
+            $i++;
+        }
+
+        $res["html"] = '<div style="font-size:2em;padding:3px 15px;">' . $no . '</div>';
+
+        if (in_array(0, $saved)) {
+            array_pop($saved);
+        }
+    }
+
+    $res["max"] = intval($data['max']);
+    $res["min"] = intval($data['min']);
+    $res["result"] = $saved;
+    $res["status"] = "success";
+
+    return $response->write(json_encode($res));
+});
+
 $app->add(function ($req, $res, $next) {
     $response = $next($req, $res);
     return $response
-            ->withHeader('Access-Control-Allow-Origin', '*')
-            ->withHeader('Access-Control-Allow-Headers', '*')
-            ->withHeader('Access-Control-Allow-Methods', '*');
+        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Headers', '*')
+        ->withHeader('Access-Control-Allow-Methods', '*');
 });
 
 function truncateTransaction()
 {
     $db = new DB();
     $db->connect();
-    
+
     $sql = "DELETE FROM `transaction` WHERE 1";
     $result = $db->query($sql);
-    
+
     $db->close();
 }
 
@@ -361,10 +446,10 @@ function truncateUser()
 {
     $db = new DB();
     $db->connect();
-    
+
     $sql = "DELETE FROM `customer` WHERE 1";
     $result = $db->query($sql);
-    
+
     $db->close();
 }
 
@@ -372,10 +457,10 @@ function truncateNumber()
 {
     $db = new DB();
     $db->connect();
-    
+
     $sql = "DELETE FROM `number` WHERE 1";
     $result = $db->query($sql);
-    
+
     $db->close();
 }
 
@@ -385,7 +470,7 @@ function generateUsers()
     $db->connect();
 
     foreach (range('A', 'Z') as $char) {
-        $sql = "INSERT INTO `customer` (`id`, `name`) VALUES ('".sha1(getSecertKey().sprintf('%s',$char))."', '".sprintf('%s',$char)."');";
+        $sql = "INSERT INTO `customer` (`id`, `name`) VALUES ('" . sha1(getSecertKey() . sprintf('%s', $char)) . "', '" . sprintf('%s', $char) . "');";
         $result = $db->query($sql);
     }
 
@@ -398,20 +483,20 @@ function generateNumbers()
     $db->connect();
 
     foreach (range(0, 99) as $i) {
-        $sql = "INSERT INTO `number` (`id`, `number`) VALUES ('".sha1(getSecertKey().sprintf('%02d',$i))."', '".sprintf('%02d',$i)."');";
+        $sql = "INSERT INTO `number` (`id`, `number`) VALUES ('" . sha1(getSecertKey() . sprintf('%02d', $i)) . "', '" . sprintf('%02d', $i) . "');";
         $result = $db->query($sql);
     }
 
     foreach (range(0, 999) as $i) {
-        $sql = "INSERT INTO `number` (`id`, `number`) VALUES ('".sha1(getSecertKey().sprintf('%03d',$i))."', '".sprintf('%03d',$i)."');";
+        $sql = "INSERT INTO `number` (`id`, `number`) VALUES ('" . sha1(getSecertKey() . sprintf('%03d', $i)) . "', '" . sprintf('%03d', $i) . "');";
         $result = $db->query($sql);
     }
 
     $db->close();
 }
 
-
-function checkAuth($request, $response, $call) { 
+function checkAuth($request, $response, $call)
+{
     if (isAuth($request)) {
         return $call($request, $response);
     } else {
