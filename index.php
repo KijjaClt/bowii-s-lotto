@@ -365,7 +365,7 @@ $app->post('/{order}/{lock}', function ($request, $response, $args) {
         if (isset($data['unique'])) {
             do {
                 $no = rand($data["min"], $data["max"]);
-            } while (in_array($no, $nums));
+            } while (in_array($no, $nums) && $no == $lock);
         } else {
             $no = rand($data["min"], $data["max"]);
         }
